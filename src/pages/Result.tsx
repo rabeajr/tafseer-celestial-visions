@@ -25,6 +25,7 @@ const Result = () => {
     guidance: ""
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [showIndividualSections, setShowIndividualSections] = useState(false);
 
   useEffect(() => {
@@ -129,23 +130,84 @@ This dream invites you to reflect on your current path and trust your intuition 
 Remember, dreams are deeply personal. Trust your heart as you reflect on how these interpretations resonate with your current situation.`;
   };
 
-  const saveToHistory = () => {
-    const existingHistory = JSON.parse(localStorage.getItem('dreamHistory') || '[]');
-    const newEntry = {
-      id: Date.now(),
-      date: new Date().toISOString(),
-      dream: dreamText,
-      interpretation: interpretation,
-      preview: dreamText.substring(0, 100) + '...'
-    };
-    
-    existingHistory.unshift(newEntry);
-    localStorage.setItem('dreamHistory', JSON.stringify(existingHistory));
-    
-    toast({
-      title: "Dream Saved! ✨",
-      description: "Your interpretation has been added to your history.",
-    });
+  const saveToSupabase = async () => {
+    try {
+      setIsSaving(true);
+      console.log('Saving dream to Supabase...');
+
+      // First, save the dream
+      const { data: dreamData, error: dreamError } = await supabase
+        .from('dreams')
+        .insert({
+          title: dreamText.substring(0, 100) + (dreamText.length > 100 ? '...' : ''),
+          content: dreamText,
+          emotions: [], // You can enhance this later to detect emotions
+        })
+        .select()
+        .single();
+
+      if (dreamError) {
+        console.error('Error saving dream:', dreamError);
+        throw dreamError;
+      }
+
+      console.log('Dream saved successfully:', dreamData);
+
+      // Then, save the interpretation
+      const interpretationType = localStorage.getItem('currentInterpretationType') || 'all';
+      
+      const { data: interpretationData, error: interpretationError } = await supabase
+        .from('interpretations')
+        .insert({
+          dream_id: dreamData.id,
+          type: interpretationType,
+          spiritual_interpretation: interpretationSections.spiritual || null,
+          psychological_interpretation: interpretationSections.psychological || null,
+          islamic_interpretation: interpretationSections.islamic || null,
+          actionable_insights: interpretationSections.guidance ? [interpretationSections.guidance] : null,
+        })
+        .select()
+        .single();
+
+      if (interpretationError) {
+        console.error('Error saving interpretation:', interpretationError);
+        throw interpretationError;
+      }
+
+      console.log('Interpretation saved successfully:', interpretationData);
+
+      toast({
+        title: "Dream Saved! ✨",
+        description: "Your dream and interpretation have been saved to your profile.",
+      });
+
+      // Clear localStorage after successful save
+      localStorage.removeItem('currentDream');
+      localStorage.removeItem('currentInterpretationType');
+
+    } catch (error) {
+      console.error('Failed to save to Supabase:', error);
+      
+      // Fallback to localStorage if Supabase fails
+      const existingHistory = JSON.parse(localStorage.getItem('dreamHistory') || '[]');
+      const newEntry = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        dream: dreamText,
+        interpretation: interpretation,
+        preview: dreamText.substring(0, 100) + '...'
+      };
+      
+      existingHistory.unshift(newEntry);
+      localStorage.setItem('dreamHistory', JSON.stringify(existingHistory));
+      
+      toast({
+        title: "Dream Saved Locally! ✨",
+        description: "Your interpretation has been saved locally. Please check your connection for cloud sync.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const getSectionTitle = (type: string) => {
@@ -250,10 +312,11 @@ Remember, dreams are deeply personal. Trust your heart as you reflect on how the
         {/* Action Buttons */}
         <div className="space-y-3 pt-4">
           <Button
-            onClick={saveToHistory}
+            onClick={saveToSupabase}
+            disabled={isSaving}
             className="w-full h-14 bg-dream-lavender hover:bg-dream-deepBlue text-dream-midnight hover:text-dream-moonlight font-semibold rounded-xl transition-all duration-300"
           >
-            💾 Save to History
+            {isSaving ? '💾 Saving...' : '💾 Save to Profile'}
           </Button>
           
           <Button
