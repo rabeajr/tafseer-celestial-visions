@@ -65,11 +65,12 @@ const Profile = () => {
         {/* Actions */}
         <div className="space-y-3">
           <Button 
+            onClick={() => navigate('/settings')}
             variant="outline"
             className="w-full h-14 border-dream-lavender text-dream-deepBlue hover:bg-dream-lavender hover:text-dream-midnight font-semibold rounded-xl transition-all duration-300 justify-start"
           >
             <Settings className="h-5 w-5 mr-3" />
-            Settings
+            Interpretation Settings
           </Button>
 
           <Button 

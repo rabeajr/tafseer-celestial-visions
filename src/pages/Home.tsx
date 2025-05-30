@@ -2,6 +2,9 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Mic } from "lucide-react";
@@ -11,11 +14,13 @@ const Home = () => {
   const navigate = useNavigate();
   const [dreamText, setDreamText] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [selectedInterpretationType, setSelectedInterpretationType] = useState("all");
 
   const handleInterpret = () => {
     if (dreamText.trim()) {
-      // Store dream text for result page
+      // Store dream text and interpretation preference for result page
       localStorage.setItem('currentDream', dreamText);
+      localStorage.setItem('currentInterpretationType', selectedInterpretationType);
       navigate('/result');
     }
   };
@@ -89,6 +94,29 @@ const Home = () => {
               </span>
             </div>
           </div>
+
+          {/* Interpretation Type Selection */}
+          <Card className="p-4 bg-white/10 backdrop-blur-sm border-dream-lavender/20 rounded-2xl">
+            <h3 className="text-dream-moonlight font-semibold text-sm mb-3">Choose Interpretation Type:</h3>
+            <RadioGroup value={selectedInterpretationType} onValueChange={setSelectedInterpretationType}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="all" id="all-types" />
+                <Label htmlFor="all-types" className="text-dream-softPurple text-sm">All interpretations (Spiritual, Psychological, Islamic)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="spiritual" id="spiritual-only" />
+                <Label htmlFor="spiritual-only" className="text-dream-softPurple text-sm">🌟 Spiritual meaning only</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="psychological" id="psychological-only" />
+                <Label htmlFor="psychological-only" className="text-dream-softPurple text-sm">🧠 Psychological insights only</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="islamic" id="islamic-only" />
+                <Label htmlFor="islamic-only" className="text-dream-softPurple text-sm">🌙 Islamic perspective only</Label>
+              </div>
+            </RadioGroup>
+          </Card>
 
           {/* Interpret Button */}
           <Button
