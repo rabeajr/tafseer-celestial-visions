@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ArrowLeft, BookOpen, Home } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Result = () => {
   const navigate = useNavigate();
@@ -20,26 +21,57 @@ const Result = () => {
     }
     
     setDreamText(storedDream);
-    
-    // Simulate AI interpretation loading
-    setTimeout(() => {
-      setInterpretation(generateMockInterpretation(storedDream));
-      setIsLoading(false);
-    }, 2000);
+    generateInterpretation(storedDream);
   }, [navigate]);
 
+  const generateInterpretation = async (dream: string) => {
+    try {
+      setIsLoading(true);
+      console.log('Calling interpret-dream function...');
+      
+      const { data, error } = await supabase.functions.invoke('interpret-dream', {
+        body: { dreamText: dream }
+      });
+
+      if (error) {
+        console.error('Error calling function:', error);
+        throw error;
+      }
+
+      if (data?.interpretation) {
+        setInterpretation(data.interpretation);
+      } else {
+        throw new Error('No interpretation received');
+      }
+
+    } catch (error) {
+      console.error('Failed to generate interpretation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to interpret your dream. Please try again.",
+        variant: "destructive"
+      });
+      // Fallback to mock interpretation
+      setInterpretation(generateMockInterpretation(dream));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const generateMockInterpretation = (dream: string) => {
-    return `Your dream carries profound symbolic meaning. The elements you described suggest a period of transformation and self-discovery in your life.
+    return `🌟 **Spiritual Meaning**: 
+Your dream carries profound symbolic meaning, suggesting a period of transformation and self-discovery in your life.
 
-The imagery in your dream often represents:
+🧠 **Psychological Insights**: 
+The elements in your dream often represent your subconscious processing deep emotions and helping you understand your inner world.
 
-🌟 **Personal Growth**: The symbols suggest you're entering a phase of spiritual awakening and personal development.
+🌙 **Islamic Perspective**: 
+Dreams are considered a form of divine communication. The symbols in your dream may be guiding you toward spiritual growth and reflection.
 
-🌙 **Emotional Insights**: Your subconscious is processing deep emotions and helping you understand your inner world.
+✨ **Guidance & Reflection**: 
+This dream invites you to reflect on your current path and trust your intuition as you navigate life's journey.
 
-✨ **Future Guidance**: This dream may be preparing you for upcoming opportunities or challenges.
-
-Remember, dreams are deeply personal. Trust your intuition as you reflect on how these interpretations resonate with your current life situation.`;
+Remember, dreams are deeply personal. Trust your heart as you reflect on how these interpretations resonate with your current situation.`;
   };
 
   const saveToHistory = () => {
@@ -109,7 +141,7 @@ Remember, dreams are deeply personal. Trust your intuition as you reflect on how
         <Card className="p-6 bg-white/90 backdrop-blur-sm border-dream-lavender/20 rounded-2xl">
           <h3 className="text-dream-midnight font-semibold mb-4 flex items-center">
             <span className="text-2xl mr-2">✨</span>
-            Interpretation
+            AI Interpretation
           </h3>
           <div className="text-dream-deepBlue text-sm leading-relaxed whitespace-pre-line">
             {interpretation}
