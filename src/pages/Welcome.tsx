@@ -33,7 +33,7 @@ const Welcome = () => {
             Sign Up
           </Button>
           
-          <Button onClick={() => navigate('/login')} variant="outline" className="w-full h-14 border-2 border-dream-lavender hover:bg-dream-lavender font-semibold text-lg rounded-2xl transition-all duration-300 text-gray-700">
+          <Button onClick={() => navigate('/login')} variant="outline" className="w-full h-14 bg-dream-lavender hover:bg-dream-softPurple text-dream-midnight font-semibold text-lg rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
             Log In
           </Button>
         </div>
