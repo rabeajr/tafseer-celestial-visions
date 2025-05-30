@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,16 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Dream-themed colors
+				dream: {
+					midnight: '#1a1b3a',
+					deepBlue: '#2d3561',
+					lavender: '#a594f9',
+					softPurple: '#cdc1ff',
+					moonlight: '#f8f7ff',
+					gold: '#ffd700',
+					rose: '#ffeef7'
 				}
 			},
 			borderRadius: {
@@ -84,11 +95,45 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'gentle-float': {
+					'0%, 100%': {
+						transform: 'translateY(0px)'
+					},
+					'50%': {
+						transform: 'translateY(-10px)'
+					}
+				},
+				'shimmer': {
+					'0%': {
+						transform: 'translateX(-100%)'
+					},
+					'100%': {
+						transform: 'translateX(100%)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.6s ease-out',
+				'gentle-float': 'gentle-float 3s ease-in-out infinite',
+				'shimmer': 'shimmer 2s infinite'
+			},
+			backgroundImage: {
+				'dream-gradient': 'linear-gradient(135deg, #1a1b3a 0%, #2d3561 50%, #a594f9 100%)',
+				'soft-gradient': 'linear-gradient(135deg, #cdc1ff 0%, #f8f7ff 100%)',
+				'moonlight-gradient': 'linear-gradient(135deg, #f8f7ff 0%, #ffeef7 100%)'
 			}
 		}
 	},
