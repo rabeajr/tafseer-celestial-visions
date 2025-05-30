@@ -16,12 +16,9 @@ const Welcome = () => {
         {/* App Logo/Title */}
         <div className="space-y-4">
           <div className="text-6xl mb-4">🌙</div>
-          <h1 className="text-5xl font-bold text-dream-moonlight mb-2 tracking-wide">
-            Tafseer
-          </h1>
-          <p className="text-dream-softPurple text-lg font-light">
-            AI Dream Interpretation
-          </p>
+          <h1 className="text-5xl font-bold text-dream-moonlight mb-2 tracking-wide">Ramiel</h1>
+          <p className="text-dream-softPurple text-lg font-light">Let Ramiel help you to understand
+AI Dream Interpretation</p>
           <p className="text-dream-lavender text-sm opacity-80">
             Discover the meanings within your dreams
           </p>
