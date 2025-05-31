@@ -3,18 +3,65 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { signIn, user, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLogin = () => {
-    // Simulate login - in real app, would validate credentials
-    navigate('/home');
+  useEffect(() => {
+    if (user && !loading) {
+      navigate('/home');
+    }
+  }, [user, loading, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    console.log('Attempting login with:', email);
+    
+    const { error } = await signIn(email, password);
+    
+    if (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Login Failed",
+        description: error.message || "Invalid email or password",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Welcome back!",
+        description: "Successfully logged in",
+      });
+      navigate('/home');
+    }
+    
+    setIsSubmitting(false);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-soft-gradient flex items-center justify-center">
+        <div className="text-dream-midnight">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-soft-gradient flex flex-col p-6">
@@ -39,7 +86,7 @@ const Login = () => {
           <p className="text-dream-deepBlue">Continue your dream journey</p>
         </div>
 
-        <div className="space-y-6">
+        <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-dream-midnight font-medium">Email</Label>
             <Input
@@ -49,6 +96,7 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               className="h-12 rounded-xl border-dream-lavender/30 focus:border-dream-lavender bg-white/80 backdrop-blur-sm"
+              required
             />
           </div>
 
@@ -61,14 +109,16 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               className="h-12 rounded-xl border-dream-lavender/30 focus:border-dream-lavender bg-white/80 backdrop-blur-sm"
+              required
             />
           </div>
 
           <Button 
-            onClick={handleLogin}
+            type="submit"
+            disabled={isSubmitting}
             className="w-full h-14 bg-dream-lavender hover:bg-dream-deepBlue text-dream-midnight hover:text-dream-moonlight font-semibold text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl mt-8"
           >
-            Continue
+            {isSubmitting ? "Signing in..." : "Continue"}
           </Button>
 
           <div className="text-center pt-4">
@@ -81,7 +131,7 @@ const Login = () => {
               Sign up
             </Button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

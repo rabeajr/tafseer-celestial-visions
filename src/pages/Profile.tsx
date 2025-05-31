@@ -5,14 +5,35 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { Settings, LogOut, Moon, Star, Heart } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { user, signOut, loading } = useAuth();
 
-  const handleLogout = () => {
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
+
+  const handleLogout = async () => {
     // Clear any stored data
     localStorage.removeItem('currentDream');
+    await signOut();
     navigate('/');
+  };
+
+  const getUserName = () => {
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return "User";
+  };
+
+  const getUserInitial = () => {
+    return getUserName().charAt(0).toUpperCase();
   };
 
   const stats = [
@@ -21,6 +42,18 @@ const Profile = () => {
     { label: "Insights Gained", value: "89", icon: Heart },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-moonlight-gradient flex items-center justify-center">
+        <div className="text-dream-midnight">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to login
+  }
+
   return (
     <div className="min-h-screen bg-moonlight-gradient flex flex-col">
       {/* Header */}
@@ -28,12 +61,13 @@ const Profile = () => {
         <div className="text-center space-y-4">
           <Avatar className="h-24 w-24 mx-auto ring-4 ring-dream-lavender">
             <AvatarFallback className="bg-dream-lavender text-dream-midnight font-bold text-2xl">
-              R
+              {getUserInitial()}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-bold text-dream-moonlight">Rabea</h1>
+            <h1 className="text-2xl font-bold text-dream-moonlight">{getUserName()}</h1>
             <p className="text-dream-softPurple">Dream Explorer</p>
+            <p className="text-dream-softPurple text-sm">{user.email}</p>
           </div>
         </div>
       </div>
@@ -58,7 +92,7 @@ const Profile = () => {
         <Card className="p-6 bg-white/90 backdrop-blur-sm border-dream-lavender/20 rounded-2xl">
           <h3 className="text-dream-midnight font-semibold mb-4">About Your Dream Journey</h3>
           <p className="text-dream-deepBlue text-sm leading-relaxed">
-            You've been exploring the mystical world of dreams with Tafseer. Each interpretation helps you understand yourself better and connect with your subconscious mind.
+            You've been exploring the mystical world of dreams with Ramiel. Each interpretation helps you understand yourself better and connect with your subconscious mind.
           </p>
         </Card>
 
@@ -85,7 +119,7 @@ const Profile = () => {
 
         {/* App Info */}
         <div className="text-center space-y-2 pt-6">
-          <p className="text-dream-deepBlue text-xs">Tafseer v1.0</p>
+          <p className="text-dream-deepBlue text-xs">Ramiel v1.0</p>
           <p className="text-dream-deepBlue/60 text-xs">AI-Powered Dream Interpretation</p>
         </div>
       </div>

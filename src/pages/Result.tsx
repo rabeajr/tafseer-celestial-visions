@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, BookOpen, Home } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 interface InterpretationSections {
   spiritual: string;
@@ -16,6 +16,7 @@ interface InterpretationSections {
 
 const Result = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [dreamText, setDreamText] = useState("");
   const [interpretation, setInterpretation] = useState("");
   const [interpretationSections, setInterpretationSections] = useState<InterpretationSections>({
@@ -29,6 +30,11 @@ const Result = () => {
   const [showIndividualSections, setShowIndividualSections] = useState(false);
 
   useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     const storedDream = localStorage.getItem('currentDream');
     if (!storedDream) {
       navigate('/home');
@@ -43,7 +49,7 @@ const Result = () => {
     const selectedTypes = JSON.parse(localStorage.getItem('selectedInterpretationTypes') || '{"spiritual":true,"psychological":true,"islamic":true}');
     
     generateInterpretation(storedDream, interpretationType, interpretationMode, selectedTypes);
-  }, [navigate]);
+  }, [navigate, user]);
 
   const generateInterpretation = async (dream: string, type: string, mode: string, selectedTypes: any) => {
     try {
@@ -131,14 +137,24 @@ Remember, dreams are deeply personal. Trust your heart as you reflect on how the
   };
 
   const saveToSupabase = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save dreams.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setIsSaving(true);
-      console.log('Saving dream to Supabase...');
+      console.log('Saving dream to Supabase for user:', user.id);
 
       // First, save the dream
       const { data: dreamData, error: dreamError } = await supabase
         .from('dreams')
         .insert({
+          user_id: user.id,
           title: dreamText.substring(0, 100) + (dreamText.length > 100 ? '...' : ''),
           content: dreamText,
           emotions: [], // You can enhance this later to detect emotions

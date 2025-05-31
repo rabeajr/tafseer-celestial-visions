@@ -6,15 +6,23 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mic } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [dreamText, setDreamText] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [selectedInterpretationType, setSelectedInterpretationType] = useState("all");
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
 
   const handleInterpret = () => {
     if (dreamText.trim()) {
@@ -37,6 +45,25 @@ const Home = () => {
     return "Good evening";
   };
 
+  const getUserName = () => {
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return "User";
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-dream-gradient flex items-center justify-center">
+        <div className="text-dream-moonlight">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to login
+  }
+
   return (
     <div className="min-h-screen bg-dream-gradient flex flex-col">
       {/* Header */}
@@ -44,12 +71,12 @@ const Home = () => {
         <div className="flex items-center space-x-3">
           <Avatar className="h-12 w-12 ring-2 ring-dream-lavender">
             <AvatarFallback className="bg-dream-lavender text-dream-midnight font-semibold">
-              R
+              {getUserName().charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
             <p className="text-dream-moonlight text-lg font-semibold">
-              {getGreeting()}, Rabea
+              {getGreeting()}, {getUserName()}
             </p>
             <p className="text-dream-softPurple text-sm">Ready to explore your dreams?</p>
           </div>

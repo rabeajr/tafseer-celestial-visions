@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -7,6 +6,8 @@ import { Calendar, Clock, Trash2, RefreshCw } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface DreamEntry {
   id: string;
@@ -17,17 +18,28 @@ interface DreamEntry {
 }
 
 const History = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [dreamHistory, setDreamHistory] = useState<DreamEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadDreamHistory();
-  }, []);
+    if (!loading && !user) {
+      navigate('/login');
+      return;
+    }
+
+    if (user) {
+      loadDreamHistory();
+    }
+  }, [user, loading, navigate]);
 
   const loadDreamHistory = async () => {
+    if (!user) return;
+
     try {
       setIsLoading(true);
-      console.log('Loading dreams from Supabase...');
+      console.log('Loading dreams from Supabase for user:', user.id);
 
       const { data: dreams, error: dreamsError } = await supabase
         .from('dreams')
@@ -43,6 +55,7 @@ const History = () => {
             actionable_insights
           )
         `)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (dreamsError) {
@@ -121,6 +134,8 @@ const History = () => {
   };
 
   const deleteDream = async (id: string) => {
+    if (!user) return;
+
     try {
       console.log('Deleting dream:', id);
 
@@ -139,7 +154,8 @@ const History = () => {
       const { error: dreamError } = await supabase
         .from('dreams')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id); // Extra security check
 
       if (dreamError) {
         console.error('Error deleting dream:', dreamError);
@@ -169,6 +185,18 @@ const History = () => {
       });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-moonlight-gradient flex items-center justify-center">
+        <div className="text-dream-midnight">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to login
+  }
 
   if (isLoading) {
     return (
